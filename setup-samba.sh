@@ -202,48 +202,53 @@ cp /etc/samba/smb.conf /etc/samba/smb.conf.bak.$(date +%Y%m%d%H%M%S)
 
 cat > /etc/samba/smb.conf << EOF
 [global]
-    workgroup = $WORKGROUP
+[global]
+    workgroup = WORKGROUP
     server string = Team 12 Samba Server
-    netbios name = $SERVER_NAME
+    netbios name = TEAM12-SMB
     server role = standalone server
-    log file = /var/log/samba/log.%m
-    max log size = 50
-    logging = file
     
-    # Security settings
+    # Security settings - using the stronger options
     security = user
     passdb backend = tdbsam
+    map to guest = Bad User
     encrypt passwords = yes
-    server min protocol = SMB2
-    client min protocol = SMB2
-    smb encrypt = required
-    server signing = required
+    
+    # Protocol settings - using the stronger SMB3_11
+    server min protocol = SMB3_11
+    server smb encrypt = required
+    server signing = mandatory
+    server smb3 encryption algorithms = AES-128-GCM, AES-128-CCM, AES-256-GCM, AES-256-CCM
+    server smb3 signing algorithms = AES-128-GMAC
+    
+    client min protocol = SMB3_11
+    client smb encrypt = required
+    client signing = required
+    client ipc signing = required
+    client protection = encrypt
+    client smb3 encryption algorithms = AES-128-GCM, AES-128-CCM, AES-256-GCM, AES-256-CCM
+    client smb3 signing algorithms = AES-128-GMAC
+    
+    # Session timeout (shorter is more secure)
+    deadtime = 5
     
     # Network access controls
     hosts allow = 127.0.0.1 192.168.12.0/24 172.18.0.0/16
     hosts deny = 0.0.0.0/0
     
     # Disable guest access
-    map to guest = never
     restrict anonymous = 2
     
-    # Disable unnecessary services
-    load printers = no
+    # Disable print services
     printing = bsd
     printcap name = /dev/null
+    load printers = no
     disable spoolss = yes
-
-[SecureShare]
-    comment = Secure Competition Share
-    path = $SAMBA_SHARE_PATH
-    browseable = yes
-    read only = no
-    guest ok = no
-    valid users = @$SAMBA_GROUP
-    create mask = 0660
-    directory mask = 0770
-    force create mode = 0660
-    force directory mode = 0770
+    
+    # Logging
+    log file = /var/log/samba/log.%m
+    max log size = 0
+    log level = 0 vfs:10
 EOF
 
 # Test configuration
