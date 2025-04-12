@@ -281,7 +281,7 @@ fi
 
 # Final verification
 log_info "Testing Samba configuration..."
-smbclient -L localhost -N
+smbclient -L localhost -U user1%Password123!
 
 log_info "==================================================="
 log_info "Samba setup complete! Your configuration is ready."
